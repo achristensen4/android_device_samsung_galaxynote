@@ -16,7 +16,7 @@ on early-init
 	symlink /mnt/emmc /emmc
 
 # Disable CFQ slice idle delay
-    write /sys/block/mmcblk0/queue/iosched/slice_idle 0
+    write /sys/block/mmcblk0/queue/iosched/slice_idle 1
 
 # FIXME: permissions for tvout
 	chmod 0777 /dev/graphics/fb0
@@ -31,7 +31,7 @@ on early-init
 
 on fs
 # mount ext4 partitions
-    mount ext4 /dev/block/mmcblk0p9 /system noatime wait ro
+    mount ext4 /dev/block/mmcblk0p9 /system noatime wait rw
     mount ext4 /dev/block/mmcblk0p7 /cache nosuid nodev noatime wait
     mount ext4 /dev/block/mmcblk0p10 /data nosuid nodev noatime wait noauto_da_alloc
     mount ext4 /dev/block/mmcblk0p12 /preload nosuid nodev noatime wait
@@ -51,10 +51,10 @@ on fs
 on post-fs-data
 # insmod kernel modules
     insmod /system/lib/modules/Si4709_driver.ko
-#    insmod /lib/modules/j4fs.ko
+    insmod /lib/modules/j4fs.ko
     
 # mount param.lfs
-#    mount j4fs /dev/block/mmcblk0p4 /mnt/.lfs
+mount j4fs /dev/block/mmcblk0p4 /mnt/.lfs rw
 
 # GPS
     chown root system /dev/ttySAC1
@@ -292,7 +292,7 @@ on boot
 
     setprop ro.build.product GT-N7000
     setprop ro.product.device GT-N7000
-    setprop ro.radio.noril yes
+    setprop ro.radio.noril no
 
 # Permisions for sensors
     chown radio system /sys/devices/virtual/K3G_GYRO-dev/k3g/gyro_selftest
@@ -309,54 +309,41 @@ on boot
 # Device Encryption by B2B Security Lab. 
     setprop ro.crypto.keyfile.userdata /efs/metadata
     
-# fake some battery state
-    setprop status.battery.state Slow
-    setprop status.battery.level 5
-    setprop status.battery.level_raw  50
-    setprop status.battery.level_scale 9
-
-service wpa_supplicant /system/bin/wpa_supplicant \
+service wpa_supplicant /system/bin/wpa_supplicant
     -Dnl80211 -puse_p2p_group_interface=1 -e/data/misc/wifi/entropy.bin
     class main
     socket wpa_wlan0 dgram 0660 wifi wifi
-    disabled
     oneshot
 
 service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL
     class main
-    disabled
     oneshot
 
 service dhcpcd_p2p /system/bin/dhcpcd -aABKL
     class main
-    disabled
     oneshot
 
 service iprenew_wlan0 /system/bin/dhcpcd -n
     class main
-    disabled
     oneshot
 
 service iprenew_p2p /system/bin/dhcpcd -n
     class main
-    disabled
     oneshot
 
 # for bluetooth
-service hciattach /system/bin/brcm_patchram_plus --enable_hci --enable_lpm --no2bytes --tosleep 50000 \
-	--baudrate 3000000 --use_baudrate_for_download --patchram /system/bin/bcm4330B1.hcd \
+service hciattach /system/bin/brcm_patchram_plus --enable_hci --enable_lpm --no2bytes --tosleep 50000
+	--baudrate 3000000 --use_baudrate_for_download --patchram /system/bin/bcm4330B1.hcd
 	--scopcm=0,0,0,0,0,0,0,3,3,0  /dev/ttySAC0
     class main
     user bluetooth
     group bluetooth net_bt_admin
-    disabled
     oneshot
 
 # bluetooth mac address
 service bdaddr /system/bin/bdaddr_read
     class main
     user root
-    disabled
     oneshot
 
 service gpsd /system/bin/gpsd -c /system/etc/gps.xml
@@ -374,6 +361,5 @@ service TvoutService_C /system/bin/bintvoutservice
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/bugmailer.sh -v
     class main
-	disabled
 	oneshot
 	keycodes 114 115 116
