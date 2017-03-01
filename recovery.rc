@@ -41,7 +41,6 @@ service ueventd /sbin/ueventd
 service console /sbin/sh
     class core
     console
-    disabled
     group log
     
 on property:ro.debuggable=1
@@ -50,7 +49,6 @@ on property:ro.debuggable=1
 service recovery /sbin/recovery
 
 service adbd /sbin/adbd recovery
-    disabled
 
 # Always start adbd on userdebug and eng builds
 # In recovery, always run adbd as root.
